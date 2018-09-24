@@ -1,5 +1,5 @@
-declare
-  lSPD number;
+DECLARE
+  lSPD NUMBER;
   lDeviceID number;
   lChannelID number;
   lMeasTypeID number;
@@ -16,7 +16,7 @@ declare
   v_xml_insert           VARCHAR2(4000);
   a_count number;
   a_countReads number;
-begin
+BEGIN
   
    v_xml               := '';
   
@@ -94,6 +94,6 @@ begin
 	v_xml_insert  := 'INSERT INTO BTXML1 VALUES (:1, :1 )';
 	EXECUTE IMMEDIATE v_xml_insert USING lDeviceID,v_blob;
 	  
-end;
+END;
 
-commit;
+COMMIT;
