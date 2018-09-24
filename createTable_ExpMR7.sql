@@ -4,5 +4,6 @@ CREATE TABLE "ExpMR7" (
   "startDate" DATE,
   "endDate" DATE,
   "channel" NUMBER,
+  "channelType" VARCHAR2(255 BYTE),
   "extMeasCode" NUMBER
 );
