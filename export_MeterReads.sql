@@ -94,8 +94,8 @@ BEGIN
       v_xml := '</IntervalBlock></MeterReading></payload></MeterReadsReplyMessage>';
       DBMS_LOB.APPEND(v_clob, v_xml);
 	
-      v_xml_insert  := 'INSERT INTO ExpMR8 VALUES (:1, :1 )';
-	EXECUTE IMMEDIATE v_xml_insert USING lDeviceID,v_clob;
+      v_xml_insert  := 'INSERT INTO ExpMR8 VALUES (:1, :1, :1, :1, :1 )';
+	EXECUTE IMMEDIATE v_xml_insert USING it_data.SDP, it_data.Meter, it_data.startDate, it_data.channel,  v_clob;
   END;
 	END LOOP;	
 	 --End Interval Data
