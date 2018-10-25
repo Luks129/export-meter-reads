@@ -66,7 +66,10 @@ BEGIN
       
       FOR it_mudr IN(
         SELECT RR.LOCAL_READ_TIME RRT, RR.CUM_READ RRVALUE, RR.CHANNEL_ID CHID
-        FROM REGISTER_READS RR WHERE channel_ID=it_data.C         
+        FROM REGISTER_READS RR
+        WHERE channel_ID=it_data.C
+        AND RRT.RR.LOCAL_READ_TIME > lDateCount-1
+        AND RRT.RR.LOCAL_READ_TIME < lDateCount+1
         ORDER BY LOCAL_READ_TIME DESC) LOOP
         BEGIN
           --Loop with meter reads
@@ -81,11 +84,8 @@ BEGIN
       v_xml_insert  := 'INSERT INTO "ExpMR8" ("SDP", "Meter", "startDate", "channel", "XML") VALUES (:1, :1, :1, :1, :1)';
 	    EXECUTE IMMEDIATE v_xml_insert USING lSPD, lDeviceID, lStartDate, lChannelID, v_clob;
       
-      lDateCount := lDateCount + 1;
+      lDateCount := lDateCount+1;
     END LOOP;
-    
-    
-    
     
   END;
   END LOOP;	
