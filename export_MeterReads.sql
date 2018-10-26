@@ -10,6 +10,8 @@ DECLARE
   lStartDate DATE;-- := TO_DATE('2018-01-12 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
   lEndDate DATE := TO_DATE('2018-01-12 03:00:00', 'YYYY-MM-DD HH24:MI:SS');
   lDateCount DATE;
+  lMinDate DATE;
+  lMaxDate DATE;
   
   v_xml VARCHAR2(10000);
   v_clob  CLOB;
@@ -45,14 +47,28 @@ BEGIN
     lEndDate := it_data.eDate;
     lChannelID := it_data.C;
     
-    IF lEndDate == NULL
+    IF lChannelType = 'R' THEN
+    BEGIN
+      SELECT MIN(RR.LOCAL_READ_TIME), MAX(RR.LOCAL_READ_TIME)
+      INTO lMinDate, lMaxDate
+      FROM REGISTER_READS RR
+      WHERE RR.CHANNEL_ID=it_data.C;
+      EXCEPTION  -- exception handlers begin
+  	    WHEN NO_DATA_FOUND THEN  		
+  		    NULL;
+    END;
+    END IF;  
+    
+    /*
+    IF lEndDate IS NULL
     THEN
       lEndDate := sysdate;
     END IF;
-    
-    lDateCount := lStartDate;
-    
-    FOR lDateCount IN (lStartDate..lEndDate) LOOP
+    */
+    lDateCount := lMinDate;
+   
+   
+   WHILE lDateCount != lMaxDate LOOP
       v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>2013-05-25T17:40:53</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
       
