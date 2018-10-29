@@ -1,10 +1,10 @@
 DECLARE
-  lSPD VARCHAR2(10000);
-  lDeviceID VARCHAR2(10000);
-  lChannelID VARCHAR2(10000);
-  lMeasTypeID VARCHAR2(10000);
-  lExtMeasCode VARCHAR2(10000);
-  lChannelType VARCHAR2(10000);
+  lSPD VARCHAR2(100);
+  lDeviceID VARCHAR2(100);
+  lChannelID VARCHAR2(100);
+  lMeasTypeID VARCHAR2(100);
+  lExtMeasCode VARCHAR2(100);
+  lChannelType VARCHAR2(100);
   lReadTime DATE;
   lReadValue NUMBER;
   lStartDate DATE;-- := TO_DATE('2018-01-12 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
