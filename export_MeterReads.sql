@@ -73,8 +73,6 @@ BEGIN
     */
         
     WHILE lDateCount <= lMaxDate LOOP
-      v_xml := '';
-      DBMS_LOB.APPEND(v_clob, v_xml);
       v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>2013-05-25T17:40:53</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
       
