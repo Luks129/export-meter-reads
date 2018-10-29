@@ -34,8 +34,8 @@ BEGIN
  
   DBMS_LOB.CREATETEMPORARY(v_clob,true);  
 				         
-  lMinDate := TO_DATE('2018-06-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
-  lMaxDate := TO_DATE('2018-07-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS');    
+  lMinDate := TO_DATE('2018-06-13 00:00:00', 'YYYY-MM');
+  lMaxDate := TO_DATE('2018-07-13 00:00:00', 'YYYY-MM');    
   lDateCount := TO_DATE(TO_CHAR(lMinDate, 'YYYY-MM'), 'YYYY-MM'); 
 
   FOR it_data IN(
@@ -72,7 +72,7 @@ BEGIN
     END IF;
     */
         
-    WHILE TO_DATE(lDateCount, 'YYYY-MM') <= TO_DATE(lMaxDate,  'YYYY-MM') LOOP
+    WHILE lDateCount <= lMaxDate LOOP
       v_clob := '';
       v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>2013-05-25T17:40:53</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
