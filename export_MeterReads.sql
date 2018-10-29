@@ -36,7 +36,7 @@ BEGIN
 				         
   lMinDate := TO_DATE('2018-06-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
   lMaxDate := TO_DATE('2018-07-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS');    
-  lDateCount := lMinDate;  
+  lDateCount := TO_DATE(TO_CHAR(lMinDate, 'YYYY-MM'), 'YYYY-MM'); 
 
   FOR it_data IN(
     SELECT "SDP" S, "Meter" M, "startDate" sDate, "endDate" eDate, "channel" C, "extMeasCode" cC, "channelType" cT
@@ -95,7 +95,7 @@ BEGIN
         FROM REGISTER_READS RR
         WHERE channel_ID=it_data.C
         AND RR.LOCAL_READ_TIME >= lDateCount
-        AND RR.LOCAL_READ_TIME < lDateCount+1
+        AND RR.LOCAL_READ_TIME < ADD_MONTHS(lDateCount, 1)
         ORDER BY LOCAL_READ_TIME DESC) LOOP
         BEGIN
           --Loop with meter reads
@@ -104,15 +104,15 @@ BEGIN
         END;
         END LOOP;
       	
-      v_xml := '</IntervalBlock></MeterReading></payload></MeterReadsReplyMessage>';
-      DBMS_LOB.APPEND(v_clob, v_xml);
-	    
-      v_xml_insert  := 'INSERT INTO "ExpMR8" ("SDP", "Meter", "startDate", "channel", "XML") VALUES (:1, :1, :1, :1, :1)';
-	    EXECUTE IMMEDIATE v_xml_insert USING lSPD, lDeviceID, lDateCount, lChannelID, v_clob;
       
-      lDateCount := lDateCount+1;
     END LOOP;
+    v_xml := '</IntervalBlock></MeterReading></payload></MeterReadsReplyMessage>';
+    DBMS_LOB.APPEND(v_clob, v_xml);
+	  
+    v_xml_insert  := 'INSERT INTO "ExpMR8" ("SDP", "Meter", "startDate", "channel", "XML") VALUES (:1, :1, :1, :1, :1)';
+	  EXECUTE IMMEDIATE v_xml_insert USING lSPD, lDeviceID, lDateCount, lChannelID, v_clob;
     
+    lDateCount := ADD_MONTHS(lDateCount, 1);
   END;
   END LOOP;	
 END;
