@@ -72,7 +72,8 @@ BEGIN
     END IF;
     */
         
-    WHILE lDateCount <= lMaxDate LOOP
+    WHILE TO_CHAR(lDateCount, 'YYYY-MM') <= TO_CHAR(lMaxDate) LOOP
+      v_clob := '';
       v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>2013-05-25T17:40:53</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
       
@@ -109,7 +110,7 @@ BEGIN
 	  
     v_xml_insert  := 'INSERT INTO "ExpMR8" ("SDP", "Meter", "startDate", "channel", "XML") VALUES (:1, :1, :1, :1, :1)';
 	  EXECUTE IMMEDIATE v_xml_insert USING lSPD, lDeviceID, lDateCount, lChannelID, v_clob;
-    
+    COMMIT;
     lDateCount := ADD_MONTHS(lDateCount, 1);
   END;
   END LOOP;	
