@@ -91,8 +91,8 @@ BEGIN
         SELECT RR.LOCAL_READ_TIME RRT, RR.CUM_READ RRVALUE, RR.CHANNEL_ID CHID
         FROM REGISTER_READS RR
         WHERE channel_ID=it_data.C
-        AND RRT.RR.LOCAL_READ_TIME > lDateCount-1
-        AND RRT.RR.LOCAL_READ_TIME < lDateCount+1
+        AND RR.LOCAL_READ_TIME > lDateCount-1
+        AND RR.LOCAL_READ_TIME < lDateCount+1
         ORDER BY LOCAL_READ_TIME DESC) LOOP
         BEGIN
           --Loop with meter reads
