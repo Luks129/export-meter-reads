@@ -47,7 +47,8 @@ BEGIN
     lEndDate := it_data.eDate;
     lChannelID := it_data.C;
     
-    IF lChannelType = 'R' THEN
+    /*
+    IF lChannelType = 'Cumulative Consumption' THEN
     BEGIN
       SELECT MIN(RR.LOCAL_READ_TIME), MAX(RR.LOCAL_READ_TIME)
       INTO lMinDate, lMaxDate
@@ -57,7 +58,11 @@ BEGIN
   	    WHEN NO_DATA_FOUND THEN  		
   		    NULL;
     END;
-    END IF;  
+    END IF;
+    */
+    
+    lMinDate := TO_DATE('2018-06-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
+    lMaxDate := TO_DATE('2018-07-13 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
     
     /*
     IF lEndDate IS NULL
@@ -72,6 +77,7 @@ BEGIN
       v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>2013-05-25T17:40:53</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
       
+      /*      
       IF lChannelType = 'R' THEN
       
       END IF;
@@ -79,6 +85,7 @@ BEGIN
       IF lChannelType = 'I' THEN
       
       END IF;
+      */
       
       FOR it_mudr IN(
         SELECT RR.LOCAL_READ_TIME RRT, RR.CUM_READ RRVALUE, RR.CHANNEL_ID CHID
