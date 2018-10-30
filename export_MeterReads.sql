@@ -9,7 +9,7 @@ DECLARE
   lReadTime DATE;
   lReadValue NUMBER;
   lStartDate DATE;-- := TO_DATE('2018-01-12 00:00:00', 'YYYY-MM-DD HH24:MI:SS');
-  lEndDate DATE := TO_DATE('2018-01-12 03:00:00', 'YYYY-MM-DD HH24:MI:SS');
+  lEndDate DATE;-- := TO_DATE('2018-01-12 03:00:00', 'YYYY-MM-DD HH24:MI:SS');
   lDateCount DATE;
   lMinDate DATE;
   lMaxDate DATE;
@@ -84,15 +84,15 @@ BEGIN
       lEndDate := sysdate;
     END IF;
     */
-    DBMS_OUTPUT.PUT_LINE('lDateCount = ' || lDateCount || ' lMaxDate = ' || lMaxDate);
+    DBMS_OUTPUT.PUT_LINE('lDateCount Init = ' || lDateCount || ' lMaxDate Init = ' || lMaxDate);
     DBMS_OUTPUT.PUT_LINE('Begin WHILE');   
 	
     WHILE lDateCount <= lMaxDate LOOP
       DBMS_LOB.CREATETEMPORARY(v_clob,true);
-      v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>2013-05-25T17:40:53</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
+      v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>' || TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS') || '</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
       
-      DBMS_OUTPUT.PUT_LINE('lDateCount = '||lDateCount);
+      DBMS_OUTPUT.PUT_LINE('lDateCount BeginOfFile = '||lDateCount);
       
       /*      
       IF lChannelType = 'R' THEN
@@ -120,9 +120,6 @@ BEGIN
           
         END;
         END LOOP;
-      	
-      lDateCount := ADD_MONTHS(lDateCount, 1);
-      DBMS_OUTPUT.PUT_LINE('lDateCount = '||lDateCount);
       
       v_xml := '</IntervalBlock></MeterReading></payload></MeterReadsReplyMessage>';
       DBMS_LOB.APPEND(v_clob, v_xml);
@@ -132,8 +129,12 @@ BEGIN
 	    EXECUTE IMMEDIATE v_xml_insert USING lSPD, lDeviceID, lDateCount, lChannelID, v_clob;
         COMMIT;
       END IF;
+	  
+	  lDateCount := ADD_MONTHS(lDateCount, 1);
+      DBMS_OUTPUT.PUT_LINE('lDateCount EndOfFile = '||lDateCount);
+	  
       DBMS_LOB.FREETEMPORARY(v_clob);
-      --dbms_lob.freetemporary(v_clob);
+
     END LOOP;
         
   END;
