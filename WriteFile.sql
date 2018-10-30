@@ -10,10 +10,10 @@ DECLARE
   l_buffer  VARCHAR2(32767);
   l_amount  BINARY_INTEGER := 32767;
   l_pos     INTEGER := 1;
-  l_date date := sysdate;
-begin 
-  for rec in (select UC, XML from BTXML1)
-  loop DBMS_XSLPROCESSOR.clob2file(rec.XML, 'EXPORT', rec.UC || '_' || TO_CHAR(sysdate, 'YYYYMMDD') ||'.xml_EIP_orgname2'); end loop;
-end;
-
-commit;
+  l_date DATE := sysdate;
+BEGIN 
+  FOR rec IN (SELECT SDP, XML FROM "ExpMR8" ORDER BY "startDate" ASC) LOOP
+    DBMS_XSLPROCESSOR.clob2file(rec.XML, 'EXPORT', rec.SDP || '_' || rec.Meter || '_' || TO_CHAR(rec.startDate, 'YYYY-MM') || '_' || rec.channel || '_' || TO_CHAR(sysdate, 'YYYYMMDD-HH24MISS') ||'.xml_EIP_orgname');
+  END LOOP;
+END;
+COMMIT;
