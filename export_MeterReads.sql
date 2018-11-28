@@ -104,23 +104,28 @@ BEGIN
       END IF;
       */
       lThereAreReads := 0;
-      FOR it_mudr IN(
-        SELECT RR.LOCAL_READ_TIME RRT, RR.CUM_READ RRVALUE, RR.CHANNEL_ID CHID
-        FROM REGISTER_READS RR
-        WHERE channel_ID=it_data.C
-        AND RR.LOCAL_READ_TIME >= lDateCount
-        AND RR.LOCAL_READ_TIME < ADD_MONTHS(lDateCount, 1)
-        ORDER BY LOCAL_READ_TIME ASC) LOOP
-        BEGIN
-          --Loop with meter reads
-          v_xml := '<IReading><endTime>' || TO_CHAR(it_mudr.RRT, 'YYYY-MM-DD HH24:MI:SS')  || '</endTime><value>' || it_mudr.RRVALUE  || '</value><flags>0</flags></IReading>';
-          DBMS_LOB.APPEND(v_clob, v_xml);
-          DBMS_OUTPUT.PUT_LINE('LOCAL_READ_TIME = ' || it_mudr.RRT || ' CUM_READ = ' || it_mudr.RRVALUE);
-          lThereAreReads := 1;
-          
-        END;
+	  
+	  IF lChannelType = 'Cumulative Consumption' THEN
+	  
+        FOR it_mudr IN(
+          SELECT RR.LOCAL_READ_TIME RRT, RR.CUM_READ RRVALUE, RR.CHANNEL_ID CHID
+          FROM REGISTER_READS RR
+          WHERE channel_ID=it_data.C
+          AND RR.LOCAL_READ_TIME >= lDateCount
+          AND RR.LOCAL_READ_TIME < ADD_MONTHS(lDateCount, 1)
+          ORDER BY LOCAL_READ_TIME ASC) LOOP
+          BEGIN
+            --Loop with meter reads
+            v_xml := '<IReading><endTime>' || TO_CHAR(it_mudr.RRT, 'YYYY-MM-DD HH24:MI:SS')  || '</endTime><value>' || it_mudr.RRVALUE  || '</value><flags>0</flags></IReading>';
+            DBMS_LOB.APPEND(v_clob, v_xml);
+            DBMS_OUTPUT.PUT_LINE('LOCAL_READ_TIME = ' || it_mudr.RRT || ' CUM_READ = ' || it_mudr.RRVALUE);
+            lThereAreReads := 1;
+            
+          END;
         END LOOP;
       
+	  END IF;
+	  
       v_xml := '</IntervalBlock></MeterReading></payload></MeterReadsReplyMessage>';
       DBMS_LOB.APPEND(v_clob, v_xml);
 	  
