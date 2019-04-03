@@ -13,9 +13,9 @@ SELECT
       prd.desc_text as channel_type 
        
        
-FROM SDP S,  
-     sdp_meter_rel SM,   
-     METER M,        
+FROM SDP@MUDR2SEBL S,  
+     sdp_meter_rel@MUDR2SEBL SM,   
+     METER@MUDR2SEBL M,        
 /*    (SELECT   
             S.UDC_ID SDP,  
             MAX(SM.EFF_START_TIME) FECHA_MAXIMA  
@@ -32,9 +32,9 @@ FROM SDP S,
             AND S.SDP_ID =  sm.SDP_ID   
             
     GROUP BY    S.UDC_ID) MAX_FECHA ,*/ 
-    channel chnl, 
-    siebel.s_prod_int  prd, 
-    meter_param mp 
+    channel@MUDR2SEBL chnl, 
+    siebel.s_prod_int@MUDR2SEBL  prd, 
+    meter_param@MUDR2SEBL mp 
   
     
 WHERE   1=1  
