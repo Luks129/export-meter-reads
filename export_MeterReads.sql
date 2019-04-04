@@ -1,4 +1,4 @@
-SET SERVEROUTPUT ON
+--SET SERVEROUTPUT ON
 DECLARE
   lSPD VARCHAR2(100);
   lDeviceID VARCHAR2(100);
@@ -33,7 +33,7 @@ BEGIN
       COMMIT;
   END IF;
  
-  --DBMS_LOB.CREATETEMPORARY(v_clob,true);  
+  DBMS_LOB.CREATETEMPORARY(v_clob,true);  
 				         
   --lMinDate := TO_DATE('2018-06', 'YYYY-MM');
   --lMaxDate := TO_DATE('2018-07', 'YYYY-MM');    
@@ -62,13 +62,35 @@ BEGIN
     lDateCount := lMinDate;
     */
     
-    IF lChannelType = 'Cumulative Consumption' THEN
+	--Formating dates	
+	IF lEndDate IS NULL
+    THEN
+      lEndDate := TO_DATE(TO_CHAR(sysdate, 'YYYY-MM'), 'YYYY-MM');
+    END IF;
+	
+    IF lChannelType LIKE '%Register%' THEN
     BEGIN
-      DBMS_OUTPUT.PUT_LINE('Begin IF');
+      --DBMS_OUTPUT.PUT_LINE
       SELECT MIN(RR.LOCAL_READ_TIME), MAX(RR.LOCAL_READ_TIME)
       INTO lMinDate, lMaxDate
       FROM REGISTER_READS RR
-      WHERE RR.CHANNEL_ID=it_data.C;
+      WHERE RR.CHANNEL_ID=it_data.C
+	  AND RR.LOCAL_READ_TIME >= lStartDate
+	  AND RR.LOCAL_READ_TIME <= lEndDate;
+      EXCEPTION  -- exception handlers begin
+  	    WHEN NO_DATA_FOUND THEN  		
+  		    NULL;
+    END;
+    END IF;
+	IF lChannelType LIKE '%Interval%' THEN
+    BEGIN
+      --DBMS_OUTPUT.PUT_LINE
+      SELECT MIN(LPI.LOCAL_INTERVAL_TIME), MAX(LPI.LOCAL_INTERVAL_TIME)
+      INTO lMinDate, lMaxDate
+      FROM LP_INTERVALS LPI
+      WHERE LPI.CHANNEL_ID=it_data.C
+	  AND LPI.LOCAL_INTERVAL_TIME >= lStartDate
+	  AND LPI.LOCAL_INTERVAL_TIME <= lEndDate;
       EXCEPTION  -- exception handlers begin
   	    WHEN NO_DATA_FOUND THEN  		
   		    NULL;
@@ -84,15 +106,15 @@ BEGIN
       lEndDate := sysdate;
     END IF;
     */
-    DBMS_OUTPUT.PUT_LINE('lDateCount Init = ' || lDateCount || ' lMaxDate Init = ' || lMaxDate);
-    DBMS_OUTPUT.PUT_LINE('Begin WHILE');   
+    --DBMS_OUTPUT.PUT_LINE('lDateCount Init = ' || lDateCount || ' lMaxDate Init = ' || lMaxDate);
+    --DBMS_OUTPUT.PUT_LINE('Begin WHILE');   
 	
     WHILE lDateCount <= lMaxDate LOOP
       DBMS_LOB.CREATETEMPORARY(v_clob,true);
-      v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>' || TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS') || '</dateTime><source>SOURCE1</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_ELECTRONIC_ID</idType><pathName>SOURCE1</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.C  || '</readingTypeId>';
+      v_xml := '<MeterReadsReplyMessage xmlns="http://www.emeter.com/energyip/amiinterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Header><verb>reply</verb><noun>MeterReads</noun><revision>2</revision><dateTime>' || TO_CHAR(sysdate, 'YYYY-MM-DD HH24:MI:SS') || '</dateTime><source>epsa</source></Header><payload><MeterReading><Meter><mRID>' || it_data.M  || '</mRID><idType>METER_X_UDC_ASSET_ID</idType><pathName>epsa</pathName></Meter><IntervalBlock><readingTypeId>' || it_data.cC  || '</readingTypeId>';
       DBMS_LOB.APPEND(v_clob, v_xml);
       
-      DBMS_OUTPUT.PUT_LINE('lDateCount BeginOfFile = '||lDateCount);
+      --DBMS_OUTPUT.PUT_LINE('lDateCount BeginOfFile = '||lDateCount);
       
       /*      
       IF lChannelType = 'R' THEN
@@ -104,7 +126,8 @@ BEGIN
       END IF;
       */
       lThereAreReads := 0;
-      FOR it_mudr IN(
+	  IF lChannelType LIKE '%Register%' THEN
+      FOR it_mudr_rr IN(
         SELECT RR.LOCAL_READ_TIME RRT, RR.CUM_READ RRVALUE, RR.CHANNEL_ID CHID
         FROM REGISTER_READS RR
         WHERE channel_ID=it_data.C
@@ -113,14 +136,34 @@ BEGIN
         ORDER BY LOCAL_READ_TIME ASC) LOOP
         BEGIN
           --Loop with meter reads
-          v_xml := '<IReading><endTime>' || TO_CHAR(it_mudr.RRT, 'YYYY-MM-DD HH24:MI:SS')  || '</endTime><value>' || it_mudr.RRVALUE  || '</value><flags>0</flags></IReading>';
+          v_xml := '<IReading><endTime>' || TO_CHAR(it_mudr_rr.RRT, 'YYYY-MM-DD HH24:MI:SS')  || '</endTime><value>' || it_mudr_rr.RRVALUE  || '</value><flags>0</flags></IReading>';
           DBMS_LOB.APPEND(v_clob, v_xml);
-          DBMS_OUTPUT.PUT_LINE('LOCAL_READ_TIME = ' || it_mudr.RRT || ' CUM_READ = ' || it_mudr.RRVALUE);
+          --DBMS_OUTPUT.PUT_LINE('LOCAL_READ_TIME = ' || it_mudr_rr.RRT || ' CUM_READ = ' || it_mudr_rr.RRVALUE);
           lThereAreReads := 1;
           
         END;
         END LOOP;
-      
+      END IF;
+	  
+	  IF lChannelType LIKE '%Interval%' THEN
+      FOR it_mudr_lpi IN(
+        SELECT LPI.LOCAL_INTERVAL_TIME LPTIME, LPI.LP_VALUE LPVALUE, LPI.CHANNEL_ID CHID
+        FROM LP_INTERVALS LPI
+        WHERE channel_ID=it_data.C
+        AND LPI.LOCAL_INTERVAL_TIME >= lDateCount
+        AND LPI.LOCAL_INTERVAL_TIME < ADD_MONTHS(lDateCount, 1)
+        ORDER BY LOCAL_INTERVAL_TIME ASC) LOOP
+        BEGIN
+          --Loop with meter reads
+          v_xml := '<IReading><endTime>' || TO_CHAR(it_mudr_lpi.LPTIME, 'YYYY-MM-DD HH24:MI:SS')  || '</endTime><value>' || it_mudr_lpi.LPVALUE  || '</value><flags>0</flags></IReading>';
+          DBMS_LOB.APPEND(v_clob, v_xml);
+          --DBMS_OUTPUT.PUT_LINE('LOCAL_READ_TIME = ' || it_mudr_lpi.LPTIME || ' CUM_READ = ' || it_mudr_lpi.LPVALUE);
+          lThereAreReads := 1;
+          
+        END;
+        END LOOP;
+      END IF;
+	  
       v_xml := '</IntervalBlock></MeterReading></payload></MeterReadsReplyMessage>';
       DBMS_LOB.APPEND(v_clob, v_xml);
 	  
@@ -131,7 +174,7 @@ BEGIN
       END IF;
 	  
 	  lDateCount := ADD_MONTHS(lDateCount, 1);
-      DBMS_OUTPUT.PUT_LINE('lDateCount EndOfFile = '||lDateCount);
+      --DBMS_OUTPUT.PUT_LINE('lDateCount EndOfFile = '||lDateCount);
 	  
       DBMS_LOB.FREETEMPORARY(v_clob);
 
