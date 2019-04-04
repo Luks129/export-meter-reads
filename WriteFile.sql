@@ -1,9 +1,9 @@
-CREATE OR REPLACE DIRECTORY EXPORT as '/tmp';
-GRANT READ ON DIRECTORY EXPORT TO PUBLIC;
-GRANT WRITE ON DIRECTORY EXPORT TO PUBLIC;
+--CREATE OR REPLACE DIRECTORY EXPORT as '/tmp';
+--GRANT READ ON DIRECTORY EXPORT TO PUBLIC;
+--GRANT WRITE ON DIRECTORY EXPORT TO PUBLIC;
 
 
-SET SERVEROUTPUT ON
+--SET SERVEROUTPUT ON
 /*
 DECLARE
   l_file    UTL_FILE.FILE_TYPE;
@@ -14,8 +14,8 @@ DECLARE
   l_date DATE := sysdate;
 */
 BEGIN 
-  FOR rec IN (SELECT SDP, XML FROM "ExpMR8" ORDER BY "startDate" ASC) LOOP
-    DBMS_XSLPROCESSOR.clob2file(rec.XML, 'EXPORT', rec.SDP || '_' || rec.Meter || '_' || TO_CHAR(rec.startDate, 'YYYY-MM') || '_' || rec.channel || '_' || TO_CHAR(sysdate, 'YYYYMMDD-HH24MISS') ||'.xml_EIP_orgname');
+  FOR rec IN (SELECT "SDP", "Meter", "startDate", "channel", "XML" FROM "ExpMR8" ORDER BY "startDate" ASC) LOOP --(SELECT SDP, "Meter", "startDate", "channel", XML FROM "ExpMR8" ORDER BY "startDate" ASC) LOOP
+    DBMS_XSLPROCESSOR.clob2file(rec.XML, 'EXPORT', rec.SDP || '_' || rec."Meter" || '_' || TO_CHAR(rec."startDate", 'YYYY-MM') || '_' || rec."channel" || '_' || TO_CHAR(sysdate, 'YYYYMMDD-HH24MISS') ||'.xml_EIP_epsa');
   END LOOP;
 END;
 COMMIT;
